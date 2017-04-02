@@ -5,20 +5,11 @@ describe Machinist::ActiveRecord do
   include ActiveRecordEnvironment
 
   before(:each) do
-    Machinist::Shop.instance.reset!
     empty_database!
   end
 
-  def fake_a_test
-    ActiveRecord::Base.transaction do
-      Machinist.reset_before_test
-      yield
-      raise ActiveRecord::Rollback
-    end
-  end
-
   context "make" do
-    it "should return an unsaved object" do
+    it "returns an unsaved object" do
       Post.blueprint { }
       post = Post.make
       post.should be_a(Post)
@@ -27,41 +18,23 @@ describe Machinist::ActiveRecord do
   end
 
   context "make!" do
-    it "should make and save objects" do
+    it "makes and saves objects" do
       Post.blueprint { }
       post = Post.make!
       post.should be_a(Post)
       post.should_not be_new_record
     end
 
-    it "should raise an exception for an invalid object" do
+    it "raises an exception for an invalid object" do
       User.blueprint { }
       lambda {
         User.make!(:username => "")
       }.should raise_error(ActiveRecord::RecordInvalid)
     end
-
-    it "should buy objects from the shop" do
-      Post.blueprint { }
-      post_a, post_b = nil, nil
-      fake_a_test { post_a = Post.make! }
-      fake_a_test { post_b = Post.make! }
-      post_a.should == post_b
-    end
-
-    it "should not buy objects from the shop if caching is disabled" do
-      Machinist.configuration.cache_objects = false
-      Post.blueprint { }
-      post_a, post_b = nil, nil
-      fake_a_test { post_a = Post.make! }
-      fake_a_test { post_b = Post.make! }
-      post_a.should_not == post_b
-      Machinist.configuration.cache_objects = true 
-    end
   end
 
   context "associations support" do
-    it "should handle belongs_to associations" do
+    it "handles belongs_to associations" do
       User.blueprint do
         username { "user_#{sn}" }
       end
@@ -75,7 +48,7 @@ describe Machinist::ActiveRecord do
       post.author.should_not be_new_record
     end
 
-    it "should handle has_many associations" do
+    it "handles has_many associations" do
       Post.blueprint do
         comments(3)
       end
@@ -90,7 +63,7 @@ describe Machinist::ActiveRecord do
       end
     end
 
-    it "should handle habtm associations" do
+    it "handles habtm associations" do
       Post.blueprint do
         tags(3)
       end
@@ -107,12 +80,12 @@ describe Machinist::ActiveRecord do
       end
     end
 
-    it "should handle overriding associations" do
+    it "handles overriding associations" do
       User.blueprint do
         username { "user_#{sn}" }
       end
       Post.blueprint do
-        author { User.make!(:username => "post_author_#{sn}") }
+        author { User.make(:username => "post_author_#{sn}") }
       end
       post = Post.make!
       post.should be_a(Post)
@@ -124,7 +97,7 @@ describe Machinist::ActiveRecord do
   end
 
   context "error handling" do
-    it "should raise an exception for an attribute with no value" do
+    it "raises an exception for an attribute with no value" do
       User.blueprint { username }
       lambda {
         User.make

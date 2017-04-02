@@ -1,5 +1,3 @@
-require 'active_support/inflector'
-
 module Machinist
 
   # When you make an object, the blueprint for that object is instance-evaled
@@ -19,8 +17,9 @@ module Machinist
     end
 
     # Returns a unique serial number for the object under construction.
-    attr_reader :serial_number
-    alias_method :sn, :serial_number
+    def sn
+      @serial_number
+    end
 
     # Returns the object under construction.
     attr_reader :object
@@ -51,18 +50,18 @@ module Machinist
       raise_argument_error(attribute) unless args.empty?
       yield
     end
-    
+
     def assign_attribute(key, value) #:nodoc:
       @assigned_attributes[key.to_sym] = value
       @object.send("#{key}=", value)
     end
-  
+
     def attribute_assigned?(key) #:nodoc:
       @assigned_attributes.has_key?(key.to_sym)
     end
 
     def raise_argument_error(attribute) #:nodoc:
-      raise ArgumentError.new("Invalid arguments to attribute #{attribute} in blueprint") 
+      raise ArgumentError.new("Invalid arguments to attribute #{attribute} in blueprint")
     end
 
   end
